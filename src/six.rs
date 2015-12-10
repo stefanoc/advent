@@ -13,7 +13,7 @@ impl Command {
         (Command::at(x0, y) .. Command::at(x1, y) + 1)
     }
 
-    fn square(&self) -> Vec<usize> {
+    fn area(&self) -> Vec<usize> {
         (self.y0 .. self.y1 + 1).flat_map(|y| Command::row(self.x0, self.x1, y)).collect()
     }
 }
@@ -34,24 +34,24 @@ pub fn solve(input: &str) -> usize {
                 _           => {
                     match &state {
                         &State::Wait         => panic!("Invalid sequence"),
-                        &State::FirstInput   => { let data = parse_data(&p); command.x0 = data.0; command.y0 = data.1; },
-                        &State::SecondInput  => { let data = parse_data(&p); command.x1 = data.0; command.y1 = data.1; },
+                        &State::FirstInput   => { let coords = parse_coords(&p); command.x0 = coords.0; command.y0 = coords.1; },
+                        &State::SecondInput  => { let coords = parse_coords(&p); command.x1 = coords.0; command.y1 = coords.1; },
                     }
                     state = State::Wait;
                 }
             }
         }
         match command {
-            Command { name: "toggle",   .. } => for i in command.square() { lights[i] = !lights[i]; },
-            Command { name: "turn on",  .. } => for i in command.square() { lights[i] = true; },
-            Command { name: "turn off", .. } => for i in command.square() { lights[i] = false; },
+            Command { name: "toggle",   .. } => for i in command.area() { lights[i] = !lights[i]; },
+            Command { name: "turn on",  .. } => for i in command.area() { lights[i] = true; },
+            Command { name: "turn off", .. } => for i in command.area() { lights[i] = false; },
             _ => {}
         }
     }
     lights.iter().filter(|&light| *light ).count()
 }
 
-fn parse_data(data: &str) -> (usize, usize) {
+fn parse_coords(data: &str) -> (usize, usize) {
     let mut p = data.split(',').map(|v| v.parse::<usize>().unwrap());
     (p.nth(0).unwrap(), p.nth(0).unwrap())
 }
