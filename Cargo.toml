@@ -5,3 +5,5 @@ authors = ["stefano"]
 
 [dependencies]
 md5 = "*"
+itertools = "*"
+permutohedron = "0.2"

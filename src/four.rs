@@ -1,4 +1,4 @@
-extern crate md5;
+use md5;
 
 pub static INPUT: &'static str = "ckczppom";
 

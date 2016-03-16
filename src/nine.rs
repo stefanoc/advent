@@ -1,64 +1,67 @@
 use std::collections::HashMap;
+use std::convert::From;
+use permutohedron::LexicalPermutation;
 
 pub fn solve(input: &str) -> usize {
-    let mut routes  = HashMap::<_, _>::new();
-    for (route1, route2) in input.lines().map(|line| parse(line)) {
+    let routes: Vec<_> = input.lines().map(Route::from).collect();
+    let mut map = Map::new();
+    for r in &routes {
         {
-            let mut e = routes.entry(route1.from).or_insert_with(|| vec![]);
-            e.push(route1);
+            let mut data = map.entry(r.from).or_insert(Distances::new());
+            data.insert(r.to, r.dist);
         }
         {
-            let mut e = routes.entry(route2.from).or_insert_with(|| vec![]);
-            e.push(route2);
+            let mut data = map.entry(r.to).or_insert(Distances::new());
+            data.insert(r.from, r.dist);
         }
     }
-    for start in routes.keys() {
-        let mut nav = Navigator::new(start, &routes);
-        let trips = nav.trips();
-        println!("Starting from: {}", start);
-        println!("-> {:?}", trips);
+    let mut cities: Vec<_> = map.keys().map(|val| *val).collect();
+    let mut trips = vec![];
+    while cities.next_permutation() {
+        if let Some(dist) = trip_distance(&map, &cities) {
+            trips.push(dist);
+        }
     }
-    0
+    trips.sort();
+    trips[0]
 }
 
-struct Navigator<'a> {
-    start:      &'a str,
-    visited:    Vec<&'a str>,
-    routes:     &'a HashMap<&'a str, Vec<Route<'a>>>
+type Distances<'a> = HashMap<&'a str, usize>;
+type Map<'a> = HashMap<&'a str, Distances<'a>>;
+
+fn trip_distance(map: &Map, trip: &Vec<&str>) -> Option<usize> {
+    let mut iter = trip.iter().peekable();
+    let mut dist = 0;
+    while let Some(city) = iter.next() {
+        if let Some(next_city) = iter.peek() {
+            if let Some(val) = distance(&map, city, next_city) {
+                dist += val;
+            } else {
+                return None;
+            }
+        }
+    }
+    return Some(dist);
 }
 
-impl<'a> Navigator<'a> {
-    fn new(start: &'a str, routes: &'a HashMap<&'a str, Vec<Route<'a>>>) -> Navigator<'a> {
-        Navigator { start: start, visited: vec![], routes: &routes }
-    }
-
-    fn trips(&'a mut self) -> Vec<Vec<&'a Route>> {
-        let mut trips = vec![];
-        
-    }
+fn distance(map: &Map, from: &str, to: &str) -> Option<usize> {
+    map.get(from).and_then(|data| data.get(to).map(|val| *val))
 }
 
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 struct Route<'a> {
     from: &'a str,
     to: &'a str,
     dist: usize
 }
 
-impl<'a> Route<'a> {
-    fn inverse(&'a self) -> Route<'a> {
-        Route { from: self.to, to: self.from, dist: self.dist }
+impl<'a> From<&'a str> for Route<'a> {
+    fn from(line: &'a str) -> Self {
+        let mut p1  = line.split(" = ");
+        let mut p2  = p1.next().map(|p| p.split(" to ")).unwrap_or_else(|| panic!("Bad route: {} (1)", line));
+        let from    = p2.next().unwrap_or_else(|| panic!("Bad route: {} (2)", line));
+        let to      = p2.next().unwrap_or_else(|| panic!("Bad route: {} (3)", line));
+        let dist    = p1.next().map(|p| p.parse::<usize>()).unwrap_or_else(|| panic!("Bad route: {} (4)", line)).unwrap_or_else(|_| panic!("Bad route: {} (5)", line));
+        Route { from: from, to: to, dist: dist }
     }
-}
-
-fn parse<'a>(line: &'a str) -> (Route<'a>, Route<'a>) {
-    let mut p1  = line.split(" = ");
-    let mut p2  = p1.next().map(|p| p.split(" to ")).unwrap_or_else(|| panic!("Bad route: {} (1)", line));
-    let from    = p2.next().unwrap_or_else(|| panic!("Bad route: {} (2)", line));
-    let to      = p2.next().unwrap_or_else(|| panic!("Bad route: {} (3)", line));
-    let dist    = p1.next().map(|p| p.parse::<usize>()).unwrap_or_else(|| panic!("Bad route: {} (4)", line)).unwrap_or_else(|_| panic!("Bad route: {} (5)", line));
-    (
-        Route { from: from, to: to, dist: dist },
-        Route { from: to, to: from, dist: dist }
-    )
 }

@@ -2,11 +2,23 @@
 name = "advent"
 version = "0.1.0"
 dependencies = [
+ "itertools 0.4.11 (registry+https://github.com/rust-lang/crates.io-index)",
  "md5 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "permutohedron 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "itertools"
+version = "0.4.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "md5"
 version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "permutohedron"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
