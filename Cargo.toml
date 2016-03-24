@@ -7,3 +7,4 @@ authors = ["stefano"]
 md5 = "*"
 itertools = "*"
 permutohedron = "0.2"
+iterslide = "*"
